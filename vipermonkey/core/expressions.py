@@ -61,22 +61,22 @@ from pyparsing import CaselessKeyword, CaselessLiteral, Combine, FollowedBy, For
     Suppress, White, Word, ZeroOrMore, delimitedList
 import pyparsing
 
-from identifiers import lex_identifier, reserved_identifier, TODO_identifier_or_object_attrib, \
+from .identifiers import lex_identifier, reserved_identifier, TODO_identifier_or_object_attrib, \
     strict_reserved_keywords, unrestricted_name, enum_val_id, identifier, typed_name, \
     TODO_identifier_or_object_attrib_loose
 #from reserved import *
-from lib_functions import StrReverse, Environ, Asc, Chr, chr_, asc, expression, strReverse
-from literals import date_string, decimal_literal, float_literal, literal, \
+from .lib_functions import StrReverse, Environ, Asc, Chr, chr_, asc, expression, strReverse
+from .literals import date_string, decimal_literal, float_literal, literal, \
     quoted_string_keep_quotes, integer, quoted_string
-from operators import AddSub, And, Concatenation, Eqv, FloorDivision, Mod, MultiDiv, Neg, \
+from .operators import AddSub, And, Concatenation, Eqv, FloorDivision, Mod, MultiDiv, Neg, \
     Not, Or, Power, Sum, Xor
-import procedures
-from vba_object import eval_arg, eval_args, to_python, coerce_to_int, coerce_to_str, \
+from . import procedures
+from .vba_object import eval_arg, eval_args, to_python, coerce_to_int, coerce_to_str, \
     VbaLibraryFunc, VBA_Object
-import vba_context
-import utils
+from . import vba_context
+from . import utils
 
-from logger import log
+from .logger import log
 
 def _vba_to_python_op(op, is_boolean):
     """
@@ -157,7 +157,7 @@ class SimpleNameExpression(VBA_Object):
         
         # Is this a 0 argument builtin function call? Make sure this is not a
         # local variable shadowing the name of a VBA builtin.
-        import vba_library
+        from . import vba_library
         if ((self.name.lower() in vba_library.VBA_LIBRARY) and
             (isinstance(value, VbaLibraryFunc)) and
             (value.num_args() == 0)):
@@ -181,7 +181,7 @@ class SimpleNameExpression(VBA_Object):
     
     def eval(self, context, params=None):
 
-        import statements
+        from . import statements
         
         if (log.getEffectiveLevel() == logging.DEBUG):
             log.debug('try eval variable/function %r' % self.name)
@@ -418,7 +418,7 @@ class MemberAccessExpression(VBA_Object):
         # SpecialCells(xlCellTypeConstants)
         # SpecialCells(xlCellTypeConstants, UsedRange())
         # SpecialCells(xlCellTypeConstants, UsedRange(Sheets(d)))
-        import vba_library
+        from . import vba_library
         
         # Load elements of the member access expression onto a stack.
         obj_stack = []
@@ -1006,7 +1006,7 @@ class MemberAccessExpression(VBA_Object):
         except ParseException:
             log.error("Parse error. Cannot evaluate '" + index + "'")
             return None
-        except:
+        except Exception:
             return None
 
         # Return the control text value.
@@ -1151,7 +1151,7 @@ class MemberAccessExpression(VBA_Object):
             rhs = rhs[0]
         if (str(rhs) != "Close"):
             return None
-        from vba_library import Close
+        from .vba_library import Close
         file_close = Close()
             
         # File closed.
@@ -1695,7 +1695,7 @@ class MemberAccessExpression(VBA_Object):
         except ParseException:
             log.error("Parse error. Cannot evaluate '" + index + "'")
             return None
-        except:
+        except Exception:
             return None
 
         # Is the control index in bounds?
@@ -2590,7 +2590,7 @@ class NamedArgument(VBA_Object):
     def eval(self, context, params=None):
         try:
             return eval_arg(self.value, context)
-        except:
+        except Exception:
             log.error("NamedArgument: Cannot eval " + self.__repr__() + ".")
             return ''
     
@@ -2810,7 +2810,7 @@ class Function_Call(VBA_Object):
         self.name = str(tokens.name)
         if (log.getEffectiveLevel() == logging.DEBUG):
             log.debug('Function_Call.name = %r' % self.name)
-        assert isinstance(self.name, basestring)
+        assert isinstance(self.name, str)
         self.params = tokens.params
 
         # Do some special handling of calls to MultiByteToWideChar. It looks like the
@@ -2855,7 +2855,7 @@ class Function_Call(VBA_Object):
     def eval(self, context, params=None):
 
         # Save the unresolved argument values.
-        import vba_library
+        from . import vba_library
         vba_library.var_names = self.params
         
         if (log.getEffectiveLevel() == logging.DEBUG):
@@ -3142,7 +3142,7 @@ class Function_Call(VBA_Object):
         context.in_bitwise_expression = old_bitwise
 
         # Is this a VBA internal function? Or a call to an external function?
-        import vba_library
+        from . import vba_library
         is_internal = (func_name.lower() in vba_library.VBA_LIBRARY)
         if (is_internal or is_external):
 
@@ -3594,8 +3594,7 @@ class BoolExprItem(VBA_Object):
             # Convert both to ints, if possible.
             try:
                 lhs = int(lhs)
-            # pylint: disable=bare-except
-            except:
+            except (ValueError, TypeError):
                 pass
 
         if (isinstance(rhs, str) and isinstance(lhs, int)):
@@ -3603,8 +3602,7 @@ class BoolExprItem(VBA_Object):
             # Convert both to ints, if possible.
             try:
                 rhs = int(rhs)
-            # pylint: disable=bare-except
-            except:
+            except (ValueError, TypeError):
                 pass
 
         # Blah. Handle float autoconversion.
@@ -3614,9 +3612,9 @@ class BoolExprItem(VBA_Object):
             lhs = lhs + 0.0
 
         # Convert unicode to str by stripping non-ASCII chars. Not ideal.
-        if (isinstance(lhs, unicode)):
+        if (isinstance(lhs, str)):
             lhs = ''.join(filter(lambda x:x in string.printable, lhs))
-        if (isinstance(rhs, unicode)):
+        if (isinstance(rhs, str)):
             rhs = ''.join(filter(lambda x:x in string.printable, rhs))
             
         # Handle unexpected types.
@@ -3715,16 +3713,14 @@ class BoolExpr(VBA_Object):
             self.lhs = tokens
             try:
                 self.lhs = tokens[0]
-            # pylint: disable=bare-except
-            except:
+            except Exception:
                 pass
             self.op = None
             self.rhs = None
             try:
                 self.op = tokens[1]
                 self.rhs = BoolExpr(original_str, location, [tokens[2:], None])
-            # pylint: disable=bare-except
-            except:
+            except Exception:
                 pass
 
         # Unary boolean operator.

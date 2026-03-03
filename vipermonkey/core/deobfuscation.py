@@ -27,8 +27,8 @@ except ImportError:
 
 from operator import xor
 
-from vipermonkey.core.vba_lines import vba_collapse_long_lines
-from vipermonkey.core.logger import log
+from .vba_lines import vba_collapse_long_lines
+from .logger import log
 
 # === LICENSE ==================================================================
 

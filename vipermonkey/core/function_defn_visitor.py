@@ -39,23 +39,8 @@ https://github.com/decalage2/ViperMonkey
 
 # === IMPORTS ================================================================
 
-import os, sys
-
-# IMPORTANT: it must be possible to run vipermonkey tools directly as scripts
-# in any directory without installing with pip or setup.py, for tests during
-# development
-# In that case, relative imports are NOT usable.
-# And to enable Python 2+3 compatibility, we need to use absolute imports,
-# so we add the vipermonkey parent folder to sys.path (absolute+normalized path):
-_thismodule_dir = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
-# print('_thismodule_dir = %r' % _thismodule_dir)
-# we are in vipermonkey/core
-_parent_dir = os.path.normpath(os.path.join(_thismodule_dir, '../..'))
-# print('_parent_dir = %r' % _parent_dir)
-if _parent_dir not in sys.path:
-    sys.path.insert(0, _parent_dir)
-
-from vipermonkey.core import *
+from .visitor import *
+from . import procedures
 
 
 class function_defn_visitor(visitor):

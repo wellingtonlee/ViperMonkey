@@ -1,7 +1,5 @@
 """Tests deobfuscation utility."""
 
-from __future__ import print_function
-
 from textwrap import dedent
 
 from vipermonkey.core import deobfuscation

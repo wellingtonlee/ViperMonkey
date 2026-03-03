@@ -37,9 +37,6 @@ https://github.com/decalage2/ViperMonkey
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# For Python 2+3 support:
-from __future__ import print_function
-
 # ------------------------------------------------------------------------------
 # CHANGELOG:
 # 2015-02-12 v0.01 PL: - first prototype
@@ -99,16 +96,16 @@ import string
 
 import subprocess
 
-from logger import log
-from procedures import Function
-from procedures import Sub
-from function_call_visitor import *
-from function_defn_visitor import *
-from function_import_visitor import *
-from var_defn_visitor import *
-import filetype
-import read_ole_fields
-from meta import FakeMeta
+from .logger import log
+from .procedures import Function
+from .procedures import Sub
+from .function_call_visitor import *
+from .function_defn_visitor import *
+from .function_import_visitor import *
+from .var_defn_visitor import *
+from . import filetype
+from . import read_ole_fields
+from .meta import FakeMeta
 
 # === FUNCTIONS ==============================================================
 
@@ -133,13 +130,13 @@ def list_startswith(_list, lstart):
 
 # === VBA GRAMMAR ============================================================
 
-from vba_lines import *
-from modules import *
+from .vba_lines import *
+from .modules import *
 
 # Make sure we populate the VBA Library:
-from vba_library import *
+from .vba_library import *
 
-from stubbed_engine import StubbedEngine
+from .stubbed_engine import StubbedEngine
 
 def pull_urls_excel_sheets(workbook):
     """
@@ -373,8 +370,8 @@ class ViperMonkey(StubbedEngine):
 
         except ParseException as err:
             print('*** PARSING ERROR (1) ***')
-            print(err.line)
-            print(" " * (err.column - 1) + "^")
+            print((err.line))
+            print((" " * (err.column - 1) + "^"))
             print(err)
 
     def add_module2(self, vba_code):
@@ -439,8 +436,8 @@ class ViperMonkey(StubbedEngine):
                 tokens.extend(l)
             except ParseException as err:
                 print('*** PARSING ERROR (2) ***')
-                print(err.line)
-                print(" " * (err.column - 1) + "^")
+                print((err.line))
+                print((" " * (err.column - 1) + "^"))
                 print(err)
             self.line_index += 1
         # Create the module object once we have all the tokens:
@@ -495,8 +492,8 @@ class ViperMonkey(StubbedEngine):
                 statements.extend(l)
             except ParseException as err:
                 print('*** PARSING ERROR (3) ***')
-                print(err.line)
-                print(" " * (err.column - 1) + "^")
+                print((err.line))
+                print((" " * (err.column - 1) + "^"))
                 print(err)
             line_index, line, line_keywords = self.parse_next_line()
         return statements

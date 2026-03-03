@@ -44,13 +44,13 @@ __version__ = '0.03'
 
 import logging
 import sys
-from collections import Iterable
+from collections.abc import Iterable
 
-from vba_object import *
+from .vba_object import *
 
-from logger import log
-from vba_object import coerce_to_num
-from vba_object import to_python
+from .logger import log
+from .vba_object import coerce_to_num
+from .vba_object import to_python
 
 def debug_repr(op, args):
     r = "("
@@ -246,7 +246,7 @@ class And(VBA_Object):
             # TODO: Need to handle floats in strings.
             try:
                 return reduce(lambda x, y: int(x) & int(y), evaluated_args)
-            except:
+            except (ValueError, TypeError):
                 log.error('Impossible to and arguments of different types.')
                 return 0
         except RuntimeError as e:
@@ -284,7 +284,7 @@ class Or(VBA_Object):
             # TODO: Need to handle floats in strings.
             try:
                 return reduce(lambda x, y: int(x) | int(y), evaluated_args)
-            except:
+            except (ValueError, TypeError):
                 log.error('Impossible to or arguments of different types.')
                 return 0
         except RuntimeError as e:

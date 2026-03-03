@@ -44,16 +44,16 @@ __version__ = '0.02'
 import logging
 import sys
 
-from vba_context import *
-from statements import *
-from identifiers import *
-import utils
+from .vba_context import *
+from .statements import *
+from .identifiers import *
+from . import utils
 
-from logger import log
-from tagged_block_finder_visitor import *
-from vba_object import to_python
-from vba_object import _get_var_vals
-from vba_object import _check_for_iocs
+from .logger import log
+from .tagged_block_finder_visitor import *
+from .vba_object import to_python
+from .vba_object import _get_var_vals
+from .vba_object import _check_for_iocs
 
 # --- SUB --------------------------------------------------------------------
 
@@ -426,7 +426,7 @@ class Function(VBA_Object):
         self.statements = tokens.statements
         try:
             len(self.statements)
-        except:
+        except TypeError:
             self.statements = [self.statements]
         self.return_type = tokens.return_type
         self.vars = {}
@@ -784,7 +784,7 @@ class PropertyLet(Sub):
         self.statements = tokens.statements
         try:
             len(self.statements)
-        except:
+        except TypeError:
             self.statements = [self.statements]
         # Get a dict mapping labeled blocks of code to labels.
         # This will be used to handle GOTO statements when emulating.

@@ -38,7 +38,7 @@ https://github.com/decalage2/ViperMonkey
 
 import sys
 
-from visitor import *
+from .visitor import *
 import pyparsing
 
 class lhs_var_visitor(visitor):
@@ -51,7 +51,7 @@ class lhs_var_visitor(visitor):
         self.visited = set()
     
     def visit(self, item):
-        from statements import Let_Statement
+        from .statements import Let_Statement
 
         if (str(item) in self.visited):
             return False

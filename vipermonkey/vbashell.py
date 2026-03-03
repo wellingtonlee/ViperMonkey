@@ -37,8 +37,6 @@ https://github.com/decalage2/ViperMonkey
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from __future__ import print_function
-
 # ------------------------------------------------------------------------------
 # CHANGELOG:
 # 2015-02-12 v0.01 PL: - first prototype
@@ -54,7 +52,7 @@ __version__ = '0.04'
 
 # --- IMPORTS ------------------------------------------------------------------
 
-import logging, optparse, sys, os
+import logging, argparse, sys, os
 
 import colorlog
 
@@ -75,7 +73,7 @@ def parse(filename=None):
         code = ''
         line = None
         while True:
-            line = raw_input()
+            line = input()
             if line == '.':
                 break
             code += line + '\n'
@@ -112,16 +110,18 @@ def main():
         'critical': logging.CRITICAL
         }
 
-    usage = 'usage: %prog [options] <filename> [filename2 ...]'
-    parser = optparse.OptionParser(usage=usage)
-    parser.add_option('-p', '--parse', dest='parse_file',
+    parser = argparse.ArgumentParser(
+        description='ViperMonkey VBA command line shell',
+        usage='%(prog)s [options] <filename> [filename2 ...]'
+    )
+    parser.add_argument('-p', '--parse', dest='parse_file',
          help='VBA text file to be parsed')
-    parser.add_option('-e', '--eval', dest='eval_expr',
+    parser.add_argument('-e', '--eval', dest='eval_expr',
         help='VBA expression to be evaluated')
-    parser.add_option('-l', '--loglevel', dest="loglevel", action="store", default=DEFAULT_LOG_LEVEL,
-                            help="logging level debug/info/warning/error/critical (default=%default)")
+    parser.add_argument('-l', '--loglevel', dest="loglevel", action="store", default=DEFAULT_LOG_LEVEL,
+                            help="logging level debug/info/warning/error/critical (default=%(default)s)")
 
-    (options, args) = parser.parse_args()
+    options = parser.parse_args()
 
     # Print help if no arguments are passed
     # if len(args) == 0:
@@ -143,7 +143,7 @@ def main():
     while True:
         try:
             print("VBA> ", end='')
-            cmd = raw_input()
+            cmd = input()
 
             if cmd.startswith('exit'):
                 break

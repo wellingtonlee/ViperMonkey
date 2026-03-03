@@ -177,7 +177,7 @@ def test_reporting_actions():
     context = vipermonkey.Context()
     vipermonkey.eval(vba_code, context=context)
 
-    print dict(context.actions)
+    print(dict(context.actions))
 
     assert dict(context.actions) == {
         'Shell function': [

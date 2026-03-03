@@ -41,15 +41,15 @@ __version__ = '0.02'
 
 # --- IMPORTS ------------------------------------------------------------------
 
-from curses_ascii import isprint
+from .curses_ascii import isprint
 import logging
 from pyparsing import *
 
-from vba_object import *
-from literals import *
-import vb_str
+from .vba_object import *
+from .literals import *
+from . import vb_str
 
-from logger import log
+from .logger import log
 
 # --- VBA Expressions ---------------------------------------------------------
 
@@ -85,7 +85,7 @@ class Chr(VBA_Object):
     def eval(self, context, params=None):
 
         # This is implemented in the common vba_library._Chr handler class.
-        import vba_library
+        from . import vba_library
         chr_handler = vba_library._Chr()
         param = eval_arg(self.arg, context)
         return chr_handler.eval(context, [param])

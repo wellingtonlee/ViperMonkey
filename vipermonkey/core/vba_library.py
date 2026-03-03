@@ -53,30 +53,30 @@ import re
 from hashlib import sha256
 import os
 import random
-from from_unicode_str import *
+from .from_unicode_str import *
 import decimal
-from curses_ascii import isprint
+from .curses_ascii import isprint
 import sys
 import traceback
 
 from pyparsing import *
 
-import vb_str
-from vba_context import VBA_LIBRARY
-from vba_object import coerce_to_int
-from vba_object import eval_arg
-from vba_object import VbaLibraryFunc
-from vba_object import VBA_Object
-from vba_object import excel_col_letter_to_index
-import expressions
-import excel
-import modules
-import strip_lines
-from vba_object import _eval_python
-import utils
-from excel import *
+from . import vb_str
+from .vba_context import VBA_LIBRARY
+from .vba_object import coerce_to_int
+from .vba_object import eval_arg
+from .vba_object import VbaLibraryFunc
+from .vba_object import VBA_Object
+from .vba_object import excel_col_letter_to_index
+from . import expressions
+from . import excel
+from . import modules
+from . import strip_lines
+from .vba_object import _eval_python
+from . import utils
+from .excel import *
 
-from logger import log
+from .logger import log
 
 # === VBA LIBRARY ============================================================
 
@@ -133,7 +133,7 @@ def member_access(var, field, globals_calling_scope=None):
 # shellcode variable as what is updated by emulated VBA functions
 # defined in this file.
 def get_raw_shellcode_data():
-    import vba_context
+    from . import vba_context
     return vba_context.shellcode
     
 def run_external_function(func_name, context, params, lib_info):
@@ -252,7 +252,7 @@ class GetSpecialFolder(VbaLibraryFunc):
                 return "C:\\Documents and Settings\\admin\\Local Settings\\Temp\\"
             else:
                 return "UNKNOWN_FOLDER\\"
-        except:
+        except (ValueError, TypeError):
             return "UNKNOWN_FOLDER\\"
 
     def num_args(self):
@@ -429,7 +429,7 @@ class WeekDay(VbaLibraryFunc):
         if (date_str.count("/") == 2):
             try:
                 date_obj = datetime.strptime(date_str, '%m/%d/%Y')
-            except:
+            except (ValueError, TypeError):
                 pass
 
         if (date_obj is not None):
@@ -552,7 +552,7 @@ class _Chr(VbaLibraryFunc):
         # It also looks like floating point numbers are allowed.
         try:
             param = coerce_to_int(param)
-        except:
+        except (ValueError, TypeError):
             log.error("%r is not a valid chr() value. Returning ''." % params[0])
             return ''
         
@@ -936,12 +936,12 @@ class Mid(VbaLibraryFunc):
         if ((s is None) or (s == "NULL")): return "\x00"
         # If start is NULL, NULL is also returned.
         if ((params[1] is None) or (params[1] == "NULL")): return "\x00"
-        if not isinstance(s, basestring):
+        if not isinstance(s, str):
             s = utils.str_convert(s)
         start = 0
         try:
             start = utils.int_convert(params[1])
-        except:
+        except (ValueError, TypeError):
             pass
 
         # Convert the string to a VbStr to handle mized ASCII/wide char weirdness.
@@ -970,7 +970,7 @@ class Mid(VbaLibraryFunc):
         length = 0
         try:
             length = utils.int_convert(params[2])
-        except:
+        except (ValueError, TypeError):
             pass
 
         # "If omitted or if there are fewer than Length characters in the text
@@ -1027,12 +1027,12 @@ class Left(VbaLibraryFunc):
         # Don't modify the "**MATCH ANY**" special value.
         if (s.strip() == "**MATCH ANY**"):
             return s
-        
+
         # "If String contains the data value Null, Null is returned."
         start = 0
         try:
             start = utils.int_convert(params[1])
-        except:
+        except (ValueError, TypeError):
             pass
 
         # Convert the string to a VbStr to handle mized ASCII/wide char weirdness.
@@ -1119,12 +1119,12 @@ class Right(VbaLibraryFunc):
         
         # "If String contains the data value Null, Null is returned."
         if s == None: return None
-        if not isinstance(s, basestring):
+        if not isinstance(s, str):
             s = str(s)
         start = 0
         try:
             start = utils.int_convert(params[1])
-        except:
+        except (ValueError, TypeError):
             pass
 
         # Convert the string to a VbStr to handle mized ASCII/wide char weirdness.
@@ -1206,7 +1206,7 @@ class Item(BuiltInDocumentProperties):
             index = None
             try:
                 index = coerce_to_int(params[0])
-            except:
+            except (ValueError, TypeError):
                 return "NULL"
 
             # Is the With variable value a dict?
@@ -1294,7 +1294,7 @@ class Shell(VbaLibraryFunc):
         try:
             params.remove('ThisDocument')
             params.remove('BuiltInDocumentProperties')
-        except:
+        except ValueError:
             pass
 
         # Get the command to run.
@@ -1873,7 +1873,7 @@ class StrConv(VbaLibraryFunc):
                         tmp += chr(i)
                         #if (conv == 64):
                         #    tmp += "\0"
-                    except:
+                    except (ValueError, OverflowError):
                         pass
                 r = tmp
 
@@ -1965,7 +1965,7 @@ class RtlMoveMemory(VbaLibraryFunc):
         # Track the shellcode bytes.
         if (len(params) < 3):
             return
-        import vba_context
+        from . import vba_context
         vba_context.add_shellcode_data(params[0], params[1], params[2])
         
 class GetByteCount_2(VbaLibraryFunc):
@@ -2005,12 +2005,12 @@ class TransformFinalBlock(VbaLibraryFunc):
         start = 0
         try:
             start = int(params[1])
-        except:
+        except (ValueError, TypeError):
             pass
         end = len(vals) - 1
         try:
             end = int(params[2])
-        except:
+        except (ValueError, TypeError):
             pass
         if (end > len(vals) - 1):
             end = len(vals) - 1
@@ -2126,7 +2126,7 @@ class Oct(VbaLibraryFunc):
             if (log.getEffectiveLevel() == logging.DEBUG):
                 log.debug("Oct: return %r" % r)
             return r
-        except:
+        except (TypeError, ValueError):
             log.error("Oct(): Invalid call oct(%r). Returning ''." % val)
             return ''
 
@@ -2143,7 +2143,7 @@ class StrReverse(VbaLibraryFunc):
         if ((params[0] is not None) and (len(params) > 0)):
             string = params[0]
             if ((not isinstance(params[0], str)) and
-                (not isinstance(params[0], unicode))):
+                (not isinstance(params[0], str))):
                 string = str(params[0])
         r = string[::-1]
         if (log.getEffectiveLevel() == logging.DEBUG):
@@ -2395,7 +2395,7 @@ class Paragraphs(VbaLibraryFunc):
         index = None
         try:
             index = coerce_to_int(params[0])
-        except:
+        except (ValueError, TypeError):
             log.error("%r is not a valid index value. Returning NULL." % params[0])
             return "NULL"
 
@@ -2634,7 +2634,7 @@ class IsNumeric(VbaLibraryFunc):
         try:
             tmp = float(arg)
             return True
-        except:
+        except (ValueError, TypeError):
             return False
     
 class InStrRev(VbaLibraryFunc):
@@ -2706,7 +2706,7 @@ class Sgn(VbaLibraryFunc):
                 r = 0
             else:
                 r = int(math.copysign(1, n))
-        except:
+        except (ValueError, TypeError):
             pass
         if (log.getEffectiveLevel() == logging.DEBUG):
             log.debug("Sgn: %r returns %r" % (self, r))
@@ -2724,7 +2724,7 @@ class Sqr(VbaLibraryFunc):
         try:
             num = utils.int_convert(params[0]) + 0.0
             r = math.sqrt(num)
-        except:
+        except (ValueError, TypeError):
             pass
         if (log.getEffectiveLevel() == logging.DEBUG):
             log.debug("Sqr: %r returns %r" % (self, r))
@@ -2742,7 +2742,7 @@ class Abs(VbaLibraryFunc):
         try:
             num = utils.int_convert(params[0])
             r = abs(num)
-        except:
+        except (ValueError, TypeError):
             pass
         if (log.getEffectiveLevel() == logging.DEBUG):
             log.debug("Abs: %r returns %r" % (self, r))
@@ -2760,7 +2760,7 @@ class Fix(VbaLibraryFunc):
         try:
             num = float(params[0])
             r = math.floor(num)
-        except:
+        except (ValueError, TypeError):
             pass
         if (log.getEffectiveLevel() == logging.DEBUG):
             log.debug("Fix: %r returns %r" % (self, r))
@@ -2779,9 +2779,9 @@ class Round(VbaLibraryFunc):
             num = float(params[0])
             sig = 0
             if (len(params) == 2):
-                sig = utils.int_convert(params(1))                
+                sig = utils.int_convert(params(1))
             r = round(num, sig)
-        except:
+        except (ValueError, TypeError):
             pass
         if (log.getEffectiveLevel() == logging.DEBUG):
             log.debug("Round: %r returns %r" % (self, r))
@@ -2815,7 +2815,7 @@ class Hex(VbaLibraryFunc):
                 r = "FF" + r[r.rindex("FF") + len("FF"):]
                 if ((len(r) % 2) != 0):
                     r = "F" + r
-        except:
+        except (ValueError, TypeError):
             pass
         if (log.getEffectiveLevel() == logging.DEBUG):
             log.debug("Hex: %r returns %r" % (self, r))
@@ -2876,8 +2876,8 @@ class CLng(VbaLibraryFunc):
             if ((r > 2147483647) or (r < -2147483647)):
                 # Overflow. Assume On Error Resume Next.
                 r = "NULL"
-        except:
-            pass 
+        except (ValueError, TypeError, AttributeError):
+            pass
         if (log.getEffectiveLevel() == logging.DEBUG):
             log.debug("CLng: %r returns %r" % (self, r))
         return r
@@ -2944,8 +2944,8 @@ class CSng(VbaLibraryFunc):
                 tmp = tmp.lower().replace("&h", "0x")
                 tmp = int(tmp, 16)
             r = float(tmp)
-        except:
-            pass 
+        except (ValueError, TypeError, AttributeError):
+            pass
         if (log.getEffectiveLevel() == logging.DEBUG):
             log.debug("CSng: CSng(%r) returns %r" % (params[0], r))
         return r
@@ -2962,7 +2962,7 @@ class Atn(VbaLibraryFunc):
         try:
             num = float(params[0])
             r = math.atan(num)
-        except:
+        except (ValueError, TypeError):
             pass
         if (log.getEffectiveLevel() == logging.DEBUG):
             log.debug("Atn: %r returns %r" % (self, r))
@@ -2980,7 +2980,7 @@ class Tan(VbaLibraryFunc):
         try:
             num = float(params[0])
             r = math.tan(num)
-        except:
+        except (ValueError, TypeError):
             pass
         if (log.getEffectiveLevel() == logging.DEBUG):
             log.debug("Tan: %r returns %r" % (self, r))
@@ -2998,7 +2998,7 @@ class Cos(VbaLibraryFunc):
         try:
             num = float(params[0])
             r = math.cos(num)
-        except:
+        except (ValueError, TypeError):
             pass
         if (log.getEffectiveLevel() == logging.DEBUG):
             log.debug("Cos: %r returns %r" % (self, r))
@@ -3036,7 +3036,7 @@ class String(VbaLibraryFunc):
             num = utils.int_convert(params[0])
             char = params[1]
             r = char * num
-        except:
+        except (ValueError, TypeError):
             pass
         if (log.getEffectiveLevel() == logging.DEBUG):
             log.debug("String: %r returns %r" % (self, r))
@@ -3116,7 +3116,7 @@ class RGB(VbaLibraryFunc):
             green = utils.int_convert(params[1])
             blue = utils.int_convert(params[2])
             r = red + (green * 256) + (blue * 65536)
-        except:
+        except (ValueError, TypeError):
             pass
         if (log.getEffectiveLevel() == logging.DEBUG):
             log.debug("RGB: %r returns %r" % (self, r))
@@ -3153,7 +3153,7 @@ class Sin(VbaLibraryFunc):
         try:
             num = float(params[0])
             r = math.sin(num)
-        except:
+        except (ValueError, TypeError):
             pass
         if (log.getEffectiveLevel() == logging.DEBUG):
             log.debug("Sin: %r returns %r" % (self, r))
@@ -3379,9 +3379,9 @@ class Pmt(VbaLibraryFunc):
                 r = ((-fv - pv * pow(1 + rate, nper)) * rate)/((1 + rate * typ) * (pow(1 + rate, nper) - 1))
             else:
                 r = 0
-        except:
+        except (ValueError, TypeError, ZeroDivisionError, OverflowError):
             pass
-        
+
         if (log.getEffectiveLevel() == logging.DEBUG):
             log.debug("Pmt: %r returns %r" % (self, r))
         return r
@@ -3408,7 +3408,7 @@ class Day(VbaLibraryFunc):
         if (len(f) == 3):
             try:
                 r = int(f[1])
-            except:
+            except (ValueError, TypeError):
                 pass
 
         if (log.getEffectiveLevel() == logging.DEBUG):
@@ -3500,7 +3500,7 @@ class OnTime(VbaLibraryFunc):
         except KeyError:
             log.warning("OnTime() callback function '" + callback_name + "' not found.")
             return "NULL"
-        import procedures
+        from . import procedures
         if (not isinstance(callback, procedures.Function) and
             not isinstance(callback, procedures.Sub)):
             log.warning("OnTime() callback function '" + callback_name + "' found, but not a function.")
@@ -3649,7 +3649,7 @@ class CVErr(VbaLibraryFunc):
         err = None
         try:
             err = int(params[0])
-        except:
+        except (ValueError, TypeError):
             pass
         vals = {2007 : "#DIV/0!",
                 2042 : "#N/A",
@@ -4328,7 +4328,7 @@ class Month(VbaLibraryFunc):
             # TODO: Handle other values.
             return 1
 
-        except:
+        except (ValueError, TypeError):
             pass
 
         return 1
@@ -4379,7 +4379,7 @@ class Rows(VbaLibraryFunc):
                 curr_sheet = None
                 try:
                     curr_sheet = context.loaded_excel.sheet_by_index(sheet_index)
-                except:
+                except Exception:
                     context.increase_general_errors()
                     log.warning("Cannot process Cells() call. No sheets in file.")
                     return "NULL"
@@ -4480,10 +4480,10 @@ class Cells(VbaLibraryFunc):
         col = None
         try:
             col = int(tmp) - 1
-        except:
+        except (ValueError, TypeError):
             try:
                 col = excel_col_letter_to_index(tmp)
-            except:
+            except (ValueError, TypeError):
                 context.increase_general_errors()
                 log.warning("Cannot process Cells() call. Column " + str(params[1]) + " invalid.")
                 return "NULL"
@@ -4495,7 +4495,7 @@ class Cells(VbaLibraryFunc):
         row = None
         try:
             row = int(tmp) - 1
-        except:
+        except (ValueError, TypeError):
             context.increase_general_errors()
             log.warning("Cannot process Cells() call. Row " + str(params[0]) + " invalid.")
             return "NULL"
@@ -4530,7 +4530,7 @@ class Cells(VbaLibraryFunc):
             sheet = None
             try:
                 sheet = context.loaded_excel.sheet_by_index(sheet_index)
-            except:
+            except Exception:
                 context.increase_general_errors()
                 log.warning("Cannot process Cells() call. No sheets in file.")
                 return "NULL"
@@ -4711,9 +4711,9 @@ class Range(VbaLibraryFunc):
                     if return_dict:
                         # Return actual dict, not str.
                         val = sheet.cell_dict(curr_row, curr_col)
-                    else:       
+                    else:
                         val = str(sheet.cell_value(curr_row, curr_col))
-                except:
+                except Exception:
                     pass
                 if (val is not None):
                     #print "(" + str(curr_row) + ", " + str(curr_col) + ")"
@@ -4803,7 +4803,7 @@ class Range(VbaLibraryFunc):
                 try:
                     sheet = context.loaded_excel.sheet_by_index(sheet_index)
                     sheets.append(sheet)
-                except:
+                except Exception:
                     context.increase_general_errors()
                     log.warning("Cannot process Range() call. No sheets in file.")
                     return "NULL"
@@ -4851,7 +4851,7 @@ class Range(VbaLibraryFunc):
         col = "??"
         try:
             row, col = self._get_row_and_column(params[0])
-        except:
+        except (ValueError, TypeError):
             pass
         #print sheet
         log.warning("Failed to read cell (" + str(row) + ", " + str(col) + ") [" + str(params[0]) + "] (2)")
@@ -5005,7 +5005,7 @@ class Second(VbaLibraryFunc):
         try:
             d = datetime.strptime(t, '%H:%M:%S')
             r = int(d.second)
-        except:
+        except (ValueError, TypeError):
             pass
         return r
 
@@ -5470,7 +5470,7 @@ class WriteProcessMemory(VbaLibraryFunc):
         # Track the shellcode bytes.
         if (len(params) < 4):
             return
-        import vba_context
+        from . import vba_context
         vba_context.add_shellcode_data(params[1], params[2], params[3])
         
 class Write(VbaLibraryFunc):

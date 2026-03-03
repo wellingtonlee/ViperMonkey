@@ -44,22 +44,22 @@ import logging
 import os
 from hashlib import sha256
 from datetime import datetime
-from logger import log
+from .logger import log
 import re
 try:
     # sudo pypy -m pip install rure
     import rure as re2
-except:
+except ImportError:
     import re as re2
 import random
 import string
 import codecs
 import copy
 import struct
-from curses_ascii import isascii
+from .curses_ascii import isascii
 
-import vba_constants
-import utils
+from . import vba_constants
+from . import utils
 
 def to_hex(s):
     """
@@ -812,7 +812,7 @@ class Context(object):
 
     def get_lib_func(self, name):
 
-        if (not isinstance(name, basestring)):
+        if (not isinstance(name, str)):
             raise KeyError('Object %r not found' % name)
         
         # Search in the global VBA library:
@@ -830,7 +830,7 @@ class Context(object):
 
     def __get(self, name, case_insensitive=True, local_only=False, global_only=False):
 
-        if (not isinstance(name, basestring)):
+        if (not isinstance(name, str)):
             raise KeyError('Object %r not found' % name)
 
         # Flag if this is a change handler lookup.
@@ -1110,7 +1110,7 @@ class Context(object):
         self.types[var] = typ
         
     def get_type(self, var):
-        if (not isinstance(var, basestring)):
+        if (not isinstance(var, str)):
             return None
         var = var.lower()
         if (var not in self.types):
@@ -1118,7 +1118,7 @@ class Context(object):
         return self.types[var]
 
     def get_doc_var(self, var, search_wildcard=True):
-        if (not isinstance(var, basestring)):
+        if (not isinstance(var, str)):
             return None
 
         # Normalize the variable name to lower case.
@@ -1205,7 +1205,7 @@ class Context(object):
         URL_REGEX = r'.*([hH][tT][tT][pP][sS]?://(([a-zA-Z0-9_\-]+\.[a-zA-Z0-9_\-\.]+(:[0-9]+)?)+(/([/\?&\~=a-zA-Z0-9_\-\.](?!http))+)?)).*'
         try:
             value = str(value).strip()
-        except:
+        except (ValueError, TypeError):
             return
         tmp_value = value
         if (len(tmp_value) > 100):
@@ -1219,12 +1219,15 @@ class Context(object):
         if ((num_b64_iocs < 200) and (value not in intermediate_iocs)):
             uni_value = None
             try:
-                uni_value = value.decode("utf-8")
+                if isinstance(value, bytes):
+                    uni_value = value.decode("utf-8")
+                else:
+                    uni_value = value
             except UnicodeDecodeError:
                 pass
             if (uni_value is not None):
                 B64_REGEX = r"(?:[A-Za-z0-9+/]{4}){10,}(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?"
-                b64_strs = re2.findall(unicode(B64_REGEX), uni_value)
+                b64_strs = re2.findall(B64_REGEX, uni_value)
                 for curr_value in b64_strs:
                     if (len(curr_value) > 100):
                         got_ioc = True
@@ -1266,8 +1269,8 @@ class Context(object):
             return False
         
         # Are we setting a cell formula?
-        import expressions
-        import vba_object
+        from . import expressions
+        from . import vba_object
         if (not isinstance(name, expressions.MemberAccessExpression)):
             return False
         tmp_rhs = str(name.rhs)
@@ -1315,7 +1318,7 @@ class Context(object):
         If this is a property asignment, call the property handler.
         """
 
-        import procedures
+        from . import procedures
         
         # Do we know the value of the variable?
         if (not self.contains(name)):
@@ -1353,13 +1356,13 @@ class Context(object):
 
         # We might have a vipermonkey simple name expression. Convert to a string
         # so we can use it.
-        import expressions
+        from . import expressions
         if (isinstance(name, expressions.SimpleNameExpression)):
             name = str(name)
         
         # Does the name make sense?
         orig_name = name
-        if (not isinstance(name, basestring)):
+        if (not isinstance(name, str)):
             log.warning("context.set() " + str(name) + " is improper type. " + str(type(name)))
             name = str(name)
 
@@ -1406,7 +1409,7 @@ class Context(object):
             try:
                 if (log.getEffectiveLevel() == logging.DEBUG):
                     log.debug("Set global var " + str(name) + " = " + str(value))
-            except:
+            except Exception:
                 pass
             self.globals[name] = value
 
@@ -1415,7 +1418,7 @@ class Context(object):
             try:
                 if (log.getEffectiveLevel() == logging.DEBUG):
                     log.debug("Set local var " + str(name) + " = " + str(value))
-            except:
+            except Exception:
                 pass
             self.locals[name] = value
 
@@ -1436,7 +1439,7 @@ class Context(object):
                 try:
                     if (log.getEffectiveLevel() == logging.DEBUG):
                         log.debug("Set local var " + str(name) + " = " + str(value))
-                except:
+                except Exception:
                     pass
                 self.locals[name] = value
             else:
@@ -1444,7 +1447,7 @@ class Context(object):
                 try:
                     if (log.getEffectiveLevel() == logging.DEBUG):
                         log.debug("Set global var " + name + " = " + str(value))
-                except:
+                except Exception:
                     pass
                 if ("." in name):
                     text_name = name + ".text"
@@ -1491,8 +1494,8 @@ class Context(object):
             try:
 
                 # Is this a Microsoft.XMLDOM object?
-                import expressions
-                import vba_object
+                from . import expressions
+                from . import vba_object
                 node_type = orig_name
                 if (isinstance(orig_name, expressions.MemberAccessExpression)):
                     node_type = orig_name.lhs

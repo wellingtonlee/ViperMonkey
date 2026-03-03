@@ -6,8 +6,8 @@ Parsing of VB comments and end of line markers.
 
 import logging
 from pyparsing import Literal, SkipTo, Combine, Suppress, Optional, CaselessKeyword, OneOrMore
-from vba_lines import line_terminator
-from logger import log
+from .vba_lines import line_terminator
+from .logger import log
 if (log.getEffectiveLevel() == logging.DEBUG ):
     log.debug('importing comments_eol')
 

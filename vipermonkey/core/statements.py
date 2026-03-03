@@ -50,34 +50,34 @@ __version__ = '0.08'
 
 import logging
 
-from comments_eol import *
-from expressions import *
-from vba_context import *
-from reserved import *
-from from_unicode_str import *
-from vba_object import to_python
-from vba_object import _eval_python
-from vba_object import _boilerplate_to_python
-from vba_object import _updated_vars_to_python
-from vba_object import _loop_vars_to_python
-from vba_object import _get_var_vals
-import procedures
-from let_statement_visitor import *
-from var_in_expr_visitor import *
-from lhs_var_visitor import *
-from function_call_visitor import *
-import vb_str
-import loop_transform
-from utils import safe_print
-import utils
+from .comments_eol import *
+from .expressions import *
+from .vba_context import *
+from .reserved import *
+from .from_unicode_str import *
+from .vba_object import to_python
+from .vba_object import _eval_python
+from .vba_object import _boilerplate_to_python
+from .vba_object import _updated_vars_to_python
+from .vba_object import _loop_vars_to_python
+from .vba_object import _get_var_vals
+from . import procedures
+from .let_statement_visitor import *
+from .var_in_expr_visitor import *
+from .lhs_var_visitor import *
+from .function_call_visitor import *
+from . import vb_str
+from . import loop_transform
+from .utils import safe_print
+from . import utils
 
 import traceback
 import string
-from logger import log
+from .logger import log
 import sys
 import re
 import base64
-from curses_ascii import isprint
+from .curses_ascii import isprint
 import hashlib
 
 def is_simple_statement(s):
@@ -1019,7 +1019,7 @@ class Let_Statement(VBA_Object):
                 r = (lhs + rhs)
             elif (self.op == "-="):
                 r = (lhs - rhs)
-        except:
+        except (TypeError, ValueError):
             pass
         return r
 
@@ -1177,7 +1177,7 @@ class Let_Statement(VBA_Object):
                             tmp += chr(c)
                             pos += step
                         value = tmp
-                    except:
+                    except (ValueError, TypeError):
                         pass
 
                 # Do we have a list of characters?
@@ -1203,7 +1203,7 @@ class Let_Statement(VBA_Object):
                         value = 0
                     else:
                         value = int(value)
-                except:
+                except (ValueError, TypeError):
                     context.report_general_error("Cannot convert '" + str(value) + "' to int. Defaulting to 0.")
                     value = 0
 
@@ -1303,7 +1303,7 @@ class Let_Statement(VBA_Object):
                     arr_var[index] = new_arr
 
             # Handle strings.
-            if ((isinstance(arr_var, str)) or (isinstance(arr_var, unicode))):
+            if ((isinstance(arr_var, str)) or (isinstance(arr_var, str))):
 
                 # Do we need to extend the length of the string to include the index?
                 if (index >= len(arr_var)):
@@ -1311,7 +1311,7 @@ class Let_Statement(VBA_Object):
                 
                 # We now have a string with the proper # of elements. Set the
                 # array element to the proper value.
-                if ((isinstance(value, str)) or (isinstance(value, unicode))):
+                if ((isinstance(value, str)) or (isinstance(value, str))):
                     arr_var = arr_var[:index] + value + arr_var[(index + 1):]
                 elif (isinstance(value, int)):
                     try:
@@ -1472,7 +1472,7 @@ class For_Statement(VBA_Object):
 
         # Get the start index. If this is a string, convert to an int.
         start = eval_arg(self.start_value, context=context)
-        if (isinstance(start, basestring)):
+        if (isinstance(start, str)):
             start = utils.int_convert(start)
 
         if (log.getEffectiveLevel() == logging.DEBUG):
@@ -1480,7 +1480,7 @@ class For_Statement(VBA_Object):
 
         # Get the end index. If this is a string, convert to an int.
         end = eval_arg(self.end_value, context=context)
-        if (isinstance(end, basestring)):
+        if (isinstance(end, str)):
             end = utils.int_convert(end)
         if (end is None):
             log.warning("Not emulating For loop. Loop end '" + str(self.end_value) + "' evaluated to None.")
@@ -1492,7 +1492,7 @@ class For_Statement(VBA_Object):
         # Get the loop step value.
         if self.step_value != 1:
             step = eval_arg(self.step_value, context=context)
-            if (isinstance(step, basestring)):
+            if (isinstance(step, str)):
                 step = utils.int_convert(step)
             if (log.getEffectiveLevel() == logging.DEBUG):
                 log.debug('FOR loop - step: %r = %r' % (self.step_value, step))
@@ -1792,7 +1792,7 @@ class For_Statement(VBA_Object):
         # value of the variable modified in the loop.
         try:
             num = int(num)
-        except:
+        except (ValueError, TypeError):
             return (None, None)
         r = None
         if (op == "+"):
@@ -2273,7 +2273,7 @@ class For_Each_Statement(VBA_Object):
                 if (done):
                     break
 
-        except:
+        except Exception:
 
             # The data type for the container may not be iterable. Do nothing.
             pass
@@ -2329,7 +2329,7 @@ def _get_guard_variables(loop_obj, context):
     for var in guard_var_names:
         try:
             r[var] = context.get(var)
-        except:
+        except (KeyError, TypeError):
             pass
 
     # Return the values of the vars in the loop guard.
@@ -2525,7 +2525,7 @@ class While_Statement(VBA_Object):
         num = body[body.index(" ") + 1:]
         try:
             num = int(num)
-        except:
+        except (ValueError, TypeError):
             return False
 
         # Now just compute the final loop counter value right here in Python.
@@ -2533,7 +2533,7 @@ class While_Statement(VBA_Object):
         final_val = eval_arg(upper_bound, context=context, treat_as_var_name=True)
         try:
             final_val = int(final_val)
-        except:
+        except (ValueError, TypeError):
             return False
         
         # Simple case first. Set the final loop counter value if possible.
@@ -3292,7 +3292,7 @@ class Case_Clause_Atomic(VBA_Object):
             try:
                 start = utils.int_convert(eval_arg(self.case_val[0], context))
                 end = utils.int_convert(eval_arg(self.case_val[1], context)) + 1
-            except:
+            except Exception:
                 return False                
 
             # Is the test val in the range?
@@ -3306,7 +3306,7 @@ class Case_Clause_Atomic(VBA_Object):
             for val in self.case_val:
                 try:
                     expected_vals.add(eval_arg(val, context))
-                except:
+                except Exception:
                     return False
 
             # Is the test val in the set?
@@ -3547,8 +3547,8 @@ class If_Statement(VBA_Object):
             r += body + " "
 
         if (full_str):
-            print guard
-            print body
+            print(guard)
+            print(body)
             sys.exit(0)
         return r
 
@@ -3817,7 +3817,7 @@ class Call_Statement(VBA_Object):
         func_name = str(self.name)
         if ("." in func_name):
             func_name = func_name[func_name.index(".") + 1:]
-        import vba_library
+        from . import vba_library
         is_internal = (func_name.lower() in vba_library.VBA_LIBRARY)
         if (is_internal or is_external):
 
@@ -3943,7 +3943,7 @@ class Call_Statement(VBA_Object):
             return
 
         # Save the unresolved argument values.
-        import vba_library
+        from . import vba_library
         vba_library.var_names = self.params
         
         # Reset the called function name if this is an alias for an imported external
@@ -4290,7 +4290,7 @@ class Redim_Statement(VBA_Object):
                     new_list = "[0] * (" + end + " - " + start + ")"
                     return indent_str + var_name + " = " + new_list
 
-                except:
+                except Exception:
                     pass
 
         # Resize array?
@@ -4339,7 +4339,7 @@ class Redim_Statement(VBA_Object):
                     new_list = [0] * (end - start)
                     context.set(self.item, new_list)
 
-                except:
+                except (ValueError, TypeError):
                     pass
 
         # Resize array?
@@ -4903,13 +4903,13 @@ class External_Function(VBA_Object):
         self.params = tokens.params
         self.lib_name = str(tokens.lib_info.lib_name)
         # normalize lib name: remove quotes, lowercase, add .dll if no extension
-        if isinstance(self.lib_name, basestring):
+        if isinstance(self.lib_name, str):
             self.lib_name = str(tokens.lib_name).strip('"').lower()
             if '.' not in self.lib_name:
                 self.lib_name += '.dll'
         self.lib_name = str(self.lib_name)
         self.alias_name = str(tokens.lib_info.alias_name)
-        if isinstance(self.alias_name, basestring):
+        if isinstance(self.alias_name, str):
             # TODO: this might not be necessary if alias is parsed as quoted string
             self.alias_name = self.alias_name.strip('"')
         if (len(self.alias_name.strip()) == 0):

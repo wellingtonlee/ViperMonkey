@@ -36,8 +36,8 @@ https://github.com/decalage2/ViperMonkey
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from visitor import *
-from statements import *
+from .visitor import *
+from .statements import *
 
 class var_in_expr_visitor(visitor):
     """
@@ -50,11 +50,11 @@ class var_in_expr_visitor(visitor):
         self.context = context
     
     def visit(self, item):
-        from expressions import SimpleNameExpression
-        from expressions import Function_Call
-        from expressions import MemberAccessExpression
-        from vba_object import VbaLibraryFunc
-        from vba_object import VBA_Object
+        from .expressions import SimpleNameExpression
+        from .expressions import Function_Call
+        from .expressions import MemberAccessExpression
+        from .vba_object import VbaLibraryFunc
+        from .vba_object import VBA_Object
 
         # Already looked at this?
         if (item in self.visited):

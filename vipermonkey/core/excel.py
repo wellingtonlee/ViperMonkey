@@ -45,11 +45,11 @@ __version__ = '0.03'
 
 #import traceback
 #import sys
-from logger import log
+from .logger import log
 import logging
 import json
 import os
-import filetype
+from . import filetype
 import random
 import re
 import subprocess
@@ -59,7 +59,7 @@ except ImportError:
     log.warning("xlrd2 Python package not installed. Falling back to xlrd.")
     import xlrd
 
-import utils
+from . import utils
     
 _thismodule_dir = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
     
@@ -379,8 +379,7 @@ def get_largest_sheet(workbook):
         sheet = None
         try:
             sheet = workbook.sheet_by_index(sheet_index)
-        # pylint: disable=bare-except
-        except:
+        except (IndexError, Exception):
             return None
 
         # Read all the cells.
@@ -477,8 +476,7 @@ def _pull_cells_sheet_xlrd(sheet, strip_empty):
                               "col" : curr_col + 1,
                               "index" : _get_alphanum_cell_index(curr_row, curr_col) }
                 curr_cells.append(curr_cell)
-            # pylint: disable=bare-except
-            except:
+            except Exception:
                 pass
 
     # Return the cells.
@@ -583,8 +581,7 @@ def pull_cells_workbook(workbook):
         try:
             sheet = workbook.sheet_by_index(sheet_index)
         # Try next sheet if index invalid.
-        # pylint: disable=bare-except
-        except:
+        except Exception:
             continue
 
         # Load the cells from this sheet.

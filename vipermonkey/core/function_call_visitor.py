@@ -36,7 +36,7 @@ https://github.com/decalage2/ViperMonkey
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from visitor import *
+from .visitor import *
 
 class function_call_visitor(visitor):
     """
@@ -49,9 +49,9 @@ class function_call_visitor(visitor):
     
     def visit(self, item):
 
-        import statements
-        import expressions
-        import lib_functions
+        from . import statements
+        from . import expressions
+        from . import lib_functions
 
         if (item in self.visited):
             return False

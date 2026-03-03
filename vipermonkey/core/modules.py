@@ -37,23 +37,20 @@ https://github.com/decalage2/ViperMonkey
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# For Python 2+3 support:
-from __future__ import print_function
-
 __version__ = '0.02'
 
 # --- IMPORTS ------------------------------------------------------------------
 
 import logging
 
-from comments_eol import *
-from procedures import *
-from statements import *
-import vba_context
-from function_defn_visitor import *
-from vba_object import to_python
+from .comments_eol import *
+from .procedures import *
+from .statements import *
+from . import vba_context
+from .function_defn_visitor import *
+from .vba_object import to_python
 
-from logger import log
+from .logger import log
 
 # === VBA MODULE AND STATEMENTS ==============================================
 

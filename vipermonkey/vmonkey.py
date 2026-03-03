@@ -14,8 +14,6 @@ Project Repository:
 https://github.com/decalage2/ViperMonkey
 """
 
-from __future__ import print_function
-
 # Do this before any other imports to make sure we have an unlimited
 # packrat parsing cache. Do not move or remove this line.
 import pyparsing
@@ -25,7 +23,7 @@ import shutil
 import logging
 import json
 import random
-import optparse
+import argparse
 import sys
 import os
 import traceback
@@ -1055,42 +1053,45 @@ def main():
         'critical': logging.CRITICAL
         }
 
-    usage = 'usage: %prog [options] <filename> [filename2 ...]'
-    parser = optparse.OptionParser(usage=usage)
-    parser.add_option("-r", action="store_true", dest="recursive",
-                      help='find files recursively in subdirectories.')
-    parser.add_option("-z", "--zip", dest='zip_password', type='str', default=None,
-                      help='if the file is a zip archive, open first file from it, using the '
-                           'provided password (requires Python 2.6+)')
-    parser.add_option("-f", "--zipfname", dest='zip_fname', type='str', default='*',
-                      help='if the file is a zip archive, file(s) to be opened within the zip. '
-                           'Wildcards * and ? are supported. (default:*)')
-    parser.add_option("-e", action="store_true", dest="scan_expressions",
-                      help='Extract and evaluate/deobfuscate constant expressions')
-    parser.add_option('-l', '--loglevel', dest="loglevel", action="store", default=DEFAULT_LOG_LEVEL,
-                      help="logging level debug/info/warning/error/critical (default=%default)")
-    parser.add_option("-s", '--strip', action="store_true", dest="strip_useless_code",
-                      help='Strip useless VB code from macros prior to parsing.')
-    parser.add_option("-j", '--jit', action="store_true", dest="do_jit",
-                      help='Speed up emulation by JIT compilation of VB loops to Python.')
-    parser.add_option('-i', '--init', dest="entry_points", action="store", default=None,
-                      help="Emulate starting at the given function name(s). Use comma seperated "
-                           "list for multiple entries.")
-    parser.add_option('-t', '--time-limit', dest="time_limit", action="store", default=None,
-                      type='int', help="Time limit (in minutes) for emulation.")
-    parser.add_option("-c", '--iocs', action="store_true", dest="display_int_iocs",
-                      help='Display potential IOCs stored in intermediate VBA variables '
-                           'assigned during emulation (URLs and base64).')
-    parser.add_option("-v", '--version', action="store_true", dest="print_version",
-                      help='Print version information of packages used by ViperMonkey.')
-    parser.add_option("-o", "--out-file", action="store", default=None, type="str",
-                      help="JSON output file containing resulting IOCs, builtins, and actions")
-    parser.add_option("-p", "--tee-log", action="store_true", default=False,
-                      help="output also to a file in addition to standard out")
-    parser.add_option("-b", "--tee-bytes", action="store", default=0, type="int",
-                      help="number of bytes to limit the tee'd log to")
+    parser = argparse.ArgumentParser(
+        description='ViperMonkey - VBA emulation engine for malware analysis',
+        usage='%(prog)s [options] <filename> [filename2 ...]'
+    )
+    parser.add_argument("-r", action="store_true", dest="recursive",
+                        help='find files recursively in subdirectories.')
+    parser.add_argument("-z", "--zip", dest='zip_password', type=str, default=None,
+                        help='if the file is a zip archive, open first file from it, using the '
+                             'provided password')
+    parser.add_argument("-f", "--zipfname", dest='zip_fname', type=str, default='*',
+                        help='if the file is a zip archive, file(s) to be opened within the zip. '
+                             'Wildcards * and ? are supported. (default:*)')
+    parser.add_argument("-e", action="store_true", dest="scan_expressions",
+                        help='Extract and evaluate/deobfuscate constant expressions')
+    parser.add_argument('-l', '--loglevel', dest="loglevel", action="store", default=DEFAULT_LOG_LEVEL,
+                        help="logging level debug/info/warning/error/critical (default=%(default)s)")
+    parser.add_argument("-s", '--strip', action="store_true", dest="strip_useless_code",
+                        help='Strip useless VB code from macros prior to parsing.')
+    parser.add_argument("-j", '--jit', action="store_true", dest="do_jit",
+                        help='Speed up emulation by JIT compilation of VB loops to Python.')
+    parser.add_argument('-i', '--init', dest="entry_points", action="store", default=None,
+                        help="Emulate starting at the given function name(s). Use comma seperated "
+                             "list for multiple entries.")
+    parser.add_argument('-t', '--time-limit', dest="time_limit", action="store", default=None,
+                        type=int, help="Time limit (in minutes) for emulation.")
+    parser.add_argument("-c", '--iocs', action="store_true", dest="display_int_iocs",
+                        help='Display potential IOCs stored in intermediate VBA variables '
+                             'assigned during emulation (URLs and base64).')
+    parser.add_argument("-v", '--version', action="store_true", dest="print_version",
+                        help='Print version information of packages used by ViperMonkey.')
+    parser.add_argument("-o", "--out-file", action="store", default=None, type=str,
+                        help="JSON output file containing resulting IOCs, builtins, and actions")
+    parser.add_argument("-p", "--tee-log", action="store_true", default=False,
+                        help="output also to a file in addition to standard out")
+    parser.add_argument("-b", "--tee-bytes", action="store", default=0, type=int,
+                        help="number of bytes to limit the tee'd log to")
+    parser.add_argument("files", nargs='*', help="files to analyze")
 
-    (options, args) = parser.parse_args()
+    options = parser.parse_args()
 
     # Print version information and exit?
     if (options.print_version):
@@ -1098,7 +1099,7 @@ def main():
         sys.exit(0)
     
     # Print help if no arguments are passed
-    if len(args) == 0:
+    if len(options.files) == 0:
         safe_print(__doc__)
         parser.print_help()
         sys.exit(0)
@@ -1109,7 +1110,7 @@ def main():
 
     json_results = []
 
-    for container, filename, data in xglob.iter_files(args,
+    for container, filename, data in xglob.iter_files(options.files,
                                                       recursive=options.recursive,
                                                       zip_password=options.zip_password,
                                                       zip_fname=options.zip_fname):

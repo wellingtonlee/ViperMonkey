@@ -34,24 +34,17 @@ https://github.com/decalage2/ViperMonkey
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import re
-from curses_ascii import isascii
-from curses_ascii import isprint
+from .curses_ascii import isascii
+from .curses_ascii import isprint
 import base64
 
 import logging
 
-# for logging
-try:
-    from core.logger import log
-except ImportError:
-    from logger import log
-try:
-    from core.logger import CappedFileHandler
-except ImportError:
-    from logger import CappedFileHandler
+from .logger import log
+from .logger import CappedFileHandler
 from logging import LogRecord
 from logging import FileHandler
-import excel
+from . import excel
 
 def safe_str_convert(s):
     """
@@ -187,7 +180,7 @@ def safe_print(text):
             msg = msg[:100]
         try:
             print(msg)
-        except:
+        except Exception:
             pass
 
     # if our logger has a FileHandler, we need to tee this print to a file as well
@@ -335,7 +328,7 @@ def int_convert(arg, leave_alone=False):
         hex_str = "0x" + arg.strip()[2:]
         try:
             return int(hex_str, 16)
-        except:
+        except (ValueError, TypeError):
             log.error("Cannot convert hex '" + str(arg) + "' to int. Defaulting to 0. " + str(e))
             return 0
             
@@ -362,7 +355,7 @@ def str_convert(arg):
     try:
         return str(arg)
     except Exception as e:
-        if (isinstance(arg, unicode)):
+        if (isinstance(arg, str)):
             return ''.join(filter(lambda x:x in string.printable, arg))
         log.error("Cannot convert given argument to str. Defaulting to ''. " + str(e))
         return ''
@@ -373,7 +366,7 @@ def strip_nonvb_chars(s):
     """
 
     # Handle unicode strings.
-    if (isinstance(s, unicode)):
+    if (isinstance(s, str)):
         s = s.encode('ascii','replace')
     
     # Sanity check.

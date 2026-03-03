@@ -52,9 +52,9 @@ __version__ = '0.08'
 # --- IMPORTS ------------------------------------------------------------------
 
 import logging
-from logger import log
+from .logger import log
 import re
-from curses_ascii import isprint
+from .curses_ascii import isprint
 import traceback
 import string
 import gc
@@ -65,15 +65,15 @@ import sys
 from datetime import datetime
 import pyparsing
 
-import expressions
-from var_in_expr_visitor import *
-from function_call_visitor import *
-from lhs_var_visitor import *
-from utils import safe_print
-import utils
-from let_statement_visitor import *
-from vba_context import *
-import excel
+from . import expressions
+from .var_in_expr_visitor import *
+from .function_call_visitor import *
+from .lhs_var_visitor import *
+from .utils import safe_print
+from . import utils
+from .let_statement_visitor import *
+from .vba_context import *
+from . import excel
 
 max_emulation_time = None
 
@@ -107,7 +107,7 @@ def limits_exceeded(throw_error=False):
     """
 
     # Check to see if we are approaching the recursion limit.
-    level = len(getouterframes(currentframe(1)))
+    level = len(getouterframes(currentframe()))
     recursion_exceeded = (level > (sys.getrecursionlimit() * .50))
     time_exceeded = False
 
@@ -178,7 +178,7 @@ class VBA_Object(object):
         if ((hasattr(self, "_children")) and (self._children is not None)):
             return self._children
         r = []
-        for _, value in self.__dict__.iteritems():
+        for _, value in self.__dict__.items():
             if (isinstance(value, VBA_Object)):
                 r.append(value)
             if ((isinstance(value, list)) or
@@ -497,11 +497,11 @@ def is_constant_math(arg):
     paren_pat = base_pat + "|(?:\\((?:\\s*" + base_pat + "\\s*[+\\-\\*\\\\]\\s*)*\\s*" + base_pat + "\\))"
     arg_str = str(arg).strip()
     try:
-        arg_str = unicode(arg_str)
+        arg_str = str(arg_str)
     except UnicodeDecodeError:
         arg_str = filter(isprint, arg_str)
-        arg_str = unicode(arg_str)
-    return (local_re.match(unicode(paren_pat), arg_str) is not None)
+        arg_str = str(arg_str)
+    return (local_re.match(paren_pat, arg_str) is not None)
 
 meta = None
 
@@ -555,8 +555,8 @@ def _infer_type_of_expression(expr, context):
     Try to determine if a given expression is an "INTEGER" or "STRING" expression.
     """
 
-    import operators
-    import vba_library
+    from . import operators
+    from . import vba_library
 
     #print "LOOK FOR TYPE"
     #print expr
@@ -670,8 +670,8 @@ def _get_var_vals(item, context, global_only=False):
     Returns a dict mapping var names to values.
     """
 
-    import procedures
-    import statements
+    from . import procedures
+    from . import statements
 
     # Get all the variables.
 
@@ -960,7 +960,7 @@ def _check_for_iocs(loop, context, indent):
         py_var = utils.fix_python_overlap(var)
         ioc_str += indent_str + "try:\n"
         ioc_str += indent_str + " "*4 + "vm_context.save_intermediate_iocs(" + py_var + ")\n"
-        ioc_str += indent_str + "except:\n"
+        ioc_str += indent_str + "except Exception:\n"
         ioc_str += indent_str + " "* 4 + "pass\n"
     return ioc_str
 
@@ -968,7 +968,7 @@ def _updated_vars_to_python(loop, context, indent):
     """
     Save the variables updated in a loop in Python.
     """
-    import statements
+    from . import statements
     
     indent_str = " " * indent
     lhs_visitor = lhs_var_visitor()
@@ -1165,7 +1165,7 @@ def _eval_python(loop, context, params=None, add_boilerplate=False, namespace=No
             # Magic. For some reason exec'ing in locals() makes the dynamically generated
             # code recognize functions defined in the dynamic code. I don't know why.
             log.info("Evaluating Python JIT code...")
-            exec code_python in locals()
+            exec(code_python, locals())
         else:
             exec(code_python, namespace)
             var_updates = namespace["var_updates"]
@@ -1184,7 +1184,7 @@ def _eval_python(loop, context, params=None, add_boilerplate=False, namespace=No
             log.warning("No variables set by Python JIT code.")
 
         # Update shellcode bytes from the JIT emulation.
-        import vba_context
+        from . import vba_context
         vba_context.shellcode = var_updates["__shell_code__"]
 
     except NotImplementedError as e:
@@ -1270,7 +1270,7 @@ def eval_arg(arg, context, treat_as_var_name=False):
         if (isinstance(r, VBA_Object) or isinstance(r, str)):
             try:
                 poss_shape_txt = str(r)
-            except:
+            except (ValueError, TypeError):
                 pass
         if ((poss_shape_txt.startswith("Shapes(")) or (poss_shape_txt.startswith("InlineShapes("))):
             if (log.getEffectiveLevel() == logging.DEBUG):
@@ -1300,7 +1300,7 @@ def eval_arg(arg, context, treat_as_var_name=False):
                     log.debug("eval_arg: Got %r = %r" % (arg, r))
                 if got_constant_math: set_cached_value(arg, r)
                 return r
-            except:
+            except (KeyError, TypeError):
                     
                 # No it is not. Try more complicated cases.
                 if (log.getEffectiveLevel() == logging.DEBUG):
@@ -1387,7 +1387,7 @@ def eval_arg(arg, context, treat_as_var_name=False):
                         log.debug("eval_arg: Try to run as function '" + func_name + "'...")
                     func = context.get(func_name)
                     r = func
-                    import procedures
+                    from . import procedures
                     if (isinstance(func, procedures.Function) or
                         isinstance(func, procedures.Sub) or
                         ('vipermonkey.core.vba_library.' in str(type(func)))):
@@ -1503,7 +1503,7 @@ def eval_arg(arg, context, treat_as_var_name=False):
                         if (log.getEffectiveLevel() == logging.DEBUG):
                             log.debug("eval_arg: Found '" + tmp + "' as wild card form variable '" + tmp_name + "'")
                         return val
-                    except:
+                    except (KeyError, TypeError):
                         pass
 
 
@@ -1628,13 +1628,13 @@ def coerce_to_str(obj, zero_is_null=False):
     # Not NULL. We have data.
 
     # Easy case. Is this already a string?
-    if (isinstance(obj, basestring)):
+    if (isinstance(obj, str)):
 
         # Try to convert unicode to str.
-        if (isinstance(obj, unicode)):
+        if (isinstance(obj, str)):
             try:
                 return obj.encode('utf-8')
-            except:
+            except (UnicodeEncodeError, UnicodeDecodeError):
                 # Conversion failed. Just leave the unicode string as-is and hope for the best.
                 pass
             
@@ -1651,7 +1651,7 @@ def coerce_to_str(obj, zero_is_null=False):
                 continue
             try:
                 r += chr(c)
-            except:
+            except (ValueError, TypeError):
 
                 # Invalid character value. Don't do string
                 # conversion of array.
@@ -1671,7 +1671,7 @@ def coerce_to_str(obj, zero_is_null=False):
     # Not a character byte array. Punt.
     try:
         return str(obj)
-    except:
+    except (ValueError, TypeError):
         return ''
 
 def coerce_args_to_str(args):
@@ -1713,9 +1713,9 @@ def coerce_to_int(obj):
             try:
                 obj = float(obj)
                 return int(obj)
-            except:
+            except (ValueError, TypeError):
                 pass
-            
+
         # Hex string?
         hex_pat = r"&h[0-9a-f]+"
         if (re.match(hex_pat, obj.lower()) is not None):
@@ -1764,7 +1764,7 @@ def coerce_to_num(obj):
             try:
                 obj = float(obj)
                 return obj
-            except:
+            except (ValueError, TypeError):
                 pass
 
         # Do we have a null byte string?

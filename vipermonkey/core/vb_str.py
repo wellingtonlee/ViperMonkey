@@ -44,7 +44,7 @@ import sys
 try:
     # sudo pypy -m pip install rure
     import rure as re
-except:
+except ImportError:
     import re
 
 def is_wide_str(the_str):
@@ -298,8 +298,8 @@ class VbStr(object):
         # Make sure we have a string.
         try:
             orig_str = str(orig_str)
-        except:
-            if (isinstance(orig_str, unicode)):
+        except (ValueError, TypeError):
+            if (isinstance(orig_str, str)):
                 orig_str = ''.join(filter(lambda x:x in string.printable, orig_str))
             else:
                 raise ValueError("Given value cannot be converted to a string.")
