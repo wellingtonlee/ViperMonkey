@@ -23,10 +23,7 @@ and vbashell from any directory.
 
 #--- IMPORTS ------------------------------------------------------------------
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup
 
 # --- ENTRY POINTS ------------------------------------------------------------
 
@@ -47,23 +44,24 @@ setup(
         "ViperMonkey is a VBA Emulation engine written in Python, designed to "
         "analyze and deobfuscate malicious VBA Macros contained in Microsoft "
         "Office files (Word, Excel, PowerPoint, Publisher, etc)."),
-    long_description=open("README.md").read(),
+    long_description=open("README.md", encoding="utf-8").read(),
+    long_description_content_type="text/markdown",
+    python_requires=">=3.6",
     install_requires=[
         # oletools from 0.54.2 to 0.56 required cryptography, incompatible with PyPy. oletools 0.56.1+ does not require it anymore.
         # Moreover, oletools 0.56.1+ does not trigger antivirus false positives anymore
-        'oletools >= 0.56.1',
+        'oletools>=0.56.1',
         "olefile",
         "prettytable",
         "colorlog",
         "colorama",
-        "pyparsing==2.2.0", # pyparsing 2.4.0 triggers a MemoryError on some samples (issue #58). pyparsing 2.3.0 parses some constructs differently and breaks things.
-        "unidecode==1.2.0",
+        "pyparsing>=2.2.0,<3", # pyparsing 2.4.0 triggers a MemoryError on some samples (issue #58). pyparsing 3.x has a different API.
+        "unidecode",
         "xlrd",
         # regex is not installable on PyPy+Windows, so we only require it if the platform is not Windows or not PyPy:
         'regex; platform_python_implementation!="PyPy" or platform_system!="Windows"',
     ],
     packages=["vipermonkey", "vipermonkey.core"],
-    setup_requires=["pytest-runner"],
     tests_require=["pytest"],
     entry_points=entry_points,
     author="Philippe Lagadec",

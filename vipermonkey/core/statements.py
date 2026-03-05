@@ -3547,8 +3547,8 @@ class If_Statement(VBA_Object):
             r += body + " "
 
         if (full_str):
-            print(guard)
-            print(body)
+            log.debug("%s", guard)
+            log.debug("%s", body)
             sys.exit(0)
         return r
 

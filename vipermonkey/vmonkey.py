@@ -39,7 +39,7 @@ from oletools.thirdparty.xglob import xglob
 from oletools.olevba import VBA_Parser, filter_vba, FileOpenError
 import olefile
     
-from core.meta import get_metadata_exif
+from .core.meta import get_metadata_exif
 
 # add the vipermonkey folder to sys.path (absolute+normalized path):
 _thismodule_dir = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
@@ -47,15 +47,15 @@ if _thismodule_dir not in sys.path:
     sys.path.insert(0, _thismodule_dir)
 
 # relative import of core ViperMonkey modules:
-import core
-import core.excel as excel
-import core.read_ole_fields as read_ole_fields
-from core.utils import safe_print
-from core.utils import safe_str_convert
+from . import core
+from .core import excel
+from .core import read_ole_fields
+from .core.utils import safe_print
+from .core.utils import safe_str_convert
 
 # for logging
-from core.logger import log
-from core.logger import CappedFileHandler
+from .core.logger import log
+from .core.logger import CappedFileHandler
 from logging import FileHandler
 
 #=== LICENSE ==================================================================

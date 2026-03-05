@@ -369,10 +369,10 @@ class ViperMonkey(StubbedEngine):
             self.add_compiled_module(m)
 
         except ParseException as err:
-            print('*** PARSING ERROR (1) ***')
-            print((err.line))
-            print((" " * (err.column - 1) + "^"))
-            print(err)
+            log.error('*** PARSING ERROR (1) ***')
+            log.error("%s", err.line)
+            log.error("%s^", " " * (err.column - 1))
+            log.error("%s", err)
 
     def add_module2(self, vba_code):
         """
@@ -435,10 +435,10 @@ class ViperMonkey(StubbedEngine):
                 # l is a list of tokens: add it to the module tokens
                 tokens.extend(l)
             except ParseException as err:
-                print('*** PARSING ERROR (2) ***')
-                print((err.line))
-                print((" " * (err.column - 1) + "^"))
-                print(err)
+                log.error('*** PARSING ERROR (2) ***')
+                log.error("%s", err.line)
+                log.error("%s^", " " * (err.column - 1))
+                log.error("%s", err)
             self.line_index += 1
         # Create the module object once we have all the tokens:
         m = Module(original_str=vba_code, location=0, tokens=tokens)
@@ -491,10 +491,10 @@ class ViperMonkey(StubbedEngine):
                     log.debug(l)
                 statements.extend(l)
             except ParseException as err:
-                print('*** PARSING ERROR (3) ***')
-                print((err.line))
-                print((" " * (err.column - 1) + "^"))
-                print(err)
+                log.error('*** PARSING ERROR (3) ***')
+                log.error("%s", err.line)
+                log.error("%s^", " " * (err.column - 1))
+                log.error("%s", err)
             line_index, line, line_keywords = self.parse_next_line()
         return statements
 
