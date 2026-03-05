@@ -151,7 +151,7 @@ def safe_equals(x,y):
         y = 0
     
     # Easy case first.
-    if (type(x) == type(y)):
+    if type(x) is type(y):
         return x == y
 
     # Booleans and ints can be directly compared.
@@ -185,7 +185,7 @@ def safe_print(text):
 
     # if our logger has a FileHandler, we need to tee this print to a file as well
     for handler in log.handlers:
-        if type(handler) is FileHandler or type(handler) is CappedFileHandler:
+        if isinstance(handler, (FileHandler, CappedFileHandler)):
             # set the format to be like a print, not a log, then set it back
             handler.setFormatter(logging.Formatter("%(message)s"))
             handler.emit(LogRecord(log.name, logging.INFO, "", None, text, None, None, "safe_print"))
@@ -229,7 +229,7 @@ def b64_decode(value):
     
     # Base64 conversion error.
     except Exception as e:
-        pass
+        log.debug("Base64 decode failed: %s", e)
 
     # No valid base64 decode.
     return None
@@ -277,7 +277,7 @@ class vb_RegExp(object):
         try:
             r = re.sub(pat, rep, string)
         except Exception as e:
-            pass
+            log.debug("RegExp.Replace failed: %s", e)
         return r
 
 def get_num_bytes(i):

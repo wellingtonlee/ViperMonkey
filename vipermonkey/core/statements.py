@@ -973,7 +973,7 @@ class Let_Statement(VBA_Object):
             if ((not isinstance(the_str, str)) and (not isinstance(the_str, list))):
                 context.report_general_error("Assigning " + str(self.name) + " failed. " + str(the_str_var) + " not str or list.")
                 return False
-            if (type(the_str) != type(rhs)):
+            if type(the_str) is not type(rhs):
                 context.report_general_error("Assigning " + str(self.name) + " failed. " + str(type(the_str)) + " != " + str(type(rhs)))
                 return False
             if (not isinstance(start, int)):

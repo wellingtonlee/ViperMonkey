@@ -241,7 +241,7 @@ class ViperMonkey(StubbedEngine):
             log.info("Emulating a VBScript file.")
 
         # Olevba uses '\n' as EOL, regular VBScript uses '\r\n'.
-        if (self.is_vbscript == True):
+        if self.is_vbscript:
             vba_library.VBA_LIBRARY['vbCrLf'] = '\r\n'
             
         # Track the loaded Excel spreadsheet (xlrd).

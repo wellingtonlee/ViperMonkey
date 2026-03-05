@@ -777,7 +777,7 @@ class Switch(VbaLibraryFunc):
         # Return the 1st true case.
         pos = 0
         while (pos < (len(params) - 1)):
-            if (params[pos] == True):
+            if params[pos] is True:
                 if (log.getEffectiveLevel() == logging.DEBUG):
                     log.debug("Switch(%r): return %r" % (self, params[pos + 1]))
                 return params[pos + 1]
@@ -1019,11 +1019,11 @@ class Left(VbaLibraryFunc):
         if (len(params) > 2):
             params = params[-2:]
         s = params[0]
-        if s == None: return None
+        if s is None: return None
 
         # Arg should be a string.
         s = utils.safe_str_convert(s)
-            
+
         # Don't modify the "**MATCH ANY**" special value.
         if (s.strip() == "**MATCH ANY**"):
             return s
@@ -1118,7 +1118,7 @@ class Right(VbaLibraryFunc):
             return s
         
         # "If String contains the data value Null, Null is returned."
-        if s == None: return None
+        if s is None: return None
         if not isinstance(s, str):
             s = str(s)
         start = 0
@@ -1465,7 +1465,7 @@ class Execute(VbaLibraryFunc):
                 pass
 
             # Was is parsed?
-            if (obj == None):
+            if obj is None:
                 
                 # Maybe replacing the '""' with '"' was a bad idea. Try the original
                 # command.
@@ -1476,7 +1476,7 @@ class Execute(VbaLibraryFunc):
                     pass
 
             # Was is parsed?
-            if (obj == None):
+            if obj is None:
                 
                 # Next attempt. Try cutting off the final line and executing.
                 if ("\n" in orig_command.strip()):
@@ -1488,7 +1488,7 @@ class Execute(VbaLibraryFunc):
                         pass
 
             # Was is parsed?
-            if (obj == None):
+            if obj is None:
 
                 # Try deleteing first non-alphabetic characters and reparsing.
                 pos = 0
@@ -1505,7 +1505,7 @@ class Execute(VbaLibraryFunc):
                     pass
 
             # Cannot ever parse this. Punt.
-            if (obj == None):
+            if obj is None:
                 if (len(orig_command) > 50):
                     orig_command = orig_command[:50] + " ..."
                 log.error("Parse error. Cannot evaluate '" + orig_command + "'")
@@ -2892,7 +2892,7 @@ class CBool(VbaLibraryFunc):
             return "NULL"
         val = params[0]
         r = 0
-        if ((val == True) or (val == 1)):
+        if val is True or val == 1:
             r = 1
         if (log.getEffectiveLevel() == logging.DEBUG):
             log.debug("CBool: %r returns %r" % (self, r))
@@ -4765,7 +4765,7 @@ class Range(VbaLibraryFunc):
             
         # Return a cell dict rather than the cell value?
         return_dict = False
-        if ((len(params) >= 2) and (params[1] == True)):
+        if len(params) >= 2 and params[1] is True:
             return_dict = True
             
         # Currently only handles Range(x) calls.

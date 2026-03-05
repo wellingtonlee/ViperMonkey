@@ -5,7 +5,7 @@ Various utility functions for working with characters.
 # Code borrowed from the Python standard library curses/ascii because it cannot
 # be imported on Windows:
 def _ctoi(c):
-    if type(c) == type(""):
+    if isinstance(c, str):
         return ord(c)
     else:
         return c
