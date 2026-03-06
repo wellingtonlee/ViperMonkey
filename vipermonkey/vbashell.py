@@ -46,10 +46,6 @@ https://github.com/decalage2/ViperMonkey
 
 __version__ = '0.04'
 
-# ------------------------------------------------------------------------------
-# TODO:
-# + use readline
-
 # --- IMPORTS ------------------------------------------------------------------
 
 import logging, argparse, sys, os

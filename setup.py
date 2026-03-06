@@ -18,9 +18,6 @@ and vbashell from any directory.
 # 2018-08-17 v0.07 PL: - added required dependency unidecode
 # 2021-04-10 v1.0.3 PL: - changed oletools version to >=0.56.1
 
-#--- TODO ---------------------------------------------------------------------
-
-
 #--- IMPORTS ------------------------------------------------------------------
 
 from setuptools import setup
@@ -61,7 +58,10 @@ setup(
         # regex is not installable on PyPy+Windows, so we only require it if the platform is not Windows or not PyPy:
         'regex; platform_python_implementation!="PyPy" or platform_system!="Windows"',
     ],
-    packages=["vipermonkey", "vipermonkey.core"],
+    packages=["vipermonkey", "vipermonkey.core", "vipermonkey.core.vba_library"],
+    extras_require={
+        "dev": ["ruff", "pytest", "pre-commit"],
+    },
     tests_require=["pytest"],
     entry_points=entry_points,
     author="Philippe Lagadec",

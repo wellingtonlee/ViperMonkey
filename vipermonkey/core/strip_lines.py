@@ -45,28 +45,6 @@ https://github.com/decalage2/ViperMonkey
 # 2018-08-17 v0.07 KS: - lots of bug fixes and additions by Kirk Sayre (PR #34)
 #                  PL: - added ASCII art banner
 
-#------------------------------------------------------------------------------
-# TODO:
-# TODO: detect subs/functions with same name (in different modules)
-# TODO: can several projects call each other?
-# TODO: Word XML with several projects?
-# - cleanup main, use optionparser
-# - option -e to extract and evaluate constant expressions
-# - option -t to trace execution
-# - option --entrypoint to specify the Sub name to use as entry point
-# - use olevba to get all modules from a file
-# Environ => VBA object
-# vbCRLF, etc => Const (parse to string)
-# py2vba: convert python string to VBA string, e.g. \" => "" (for olevba to scan expressions) - same thing for ints, etc?
-#TODO: expr_int / expr_str
-#TODO: eval(parent) => for statements to set local variables into parent functions/procedures + main VBA module
-#TODO: __repr__ for printing
-#TODO: Environ('str') => '%str%'
-#TODO: determine the order of Auto subs for Word, Excel
-
-# TODO later:
-# - add VBS support (two modes?)
-
 import logging
 import sys
 import re

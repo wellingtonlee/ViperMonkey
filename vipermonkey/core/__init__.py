@@ -84,10 +84,8 @@ import sys
 import logging
 import string
 
-# TODO: add pyparsing to thirdparty folder, update setup.py
 from pyparsing import *
 
-# TODO: replace with tablestream
 import prettytable
 
 # sudo pypy -m pip install unidecode
@@ -443,7 +441,6 @@ class ViperMonkey(StubbedEngine):
         # Create the module object once we have all the tokens:
         m = Module(original_str=vba_code, location=0, tokens=tokens)
         self.modules.append(m)
-        # # TODO: add all subs/functions and global variables to self.globals
         for name, _sub in m.subs.items():
             if (log.getEffectiveLevel() == logging.DEBUG):
                 log.debug('(2) storing sub "%s" in globals' % name)
